@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
 	private List<AppDetail> apps = new ArrayList<AppDetail>();
 	private List<AppDetail> bookmarks = new ArrayList<AppDetail>();
 	private ListView list; 
+	private ArrayAdapter<AppDetail> adapter;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,14 +42,30 @@ public class MainActivity extends Activity {
 		
 		setContentView(R.layout.activity_main);
 		
+		//---------------------adapter setup--------------------//
+		adapter = new ArrayAdapter<AppDetail>(this, R.layout.list_item, apps) {
+	        @Override
+	        public View getView(int position, View convertView, ViewGroup parent) {
+	            if(convertView == null){
+	                convertView = getListItem();
+	            }
+	            
+	            if(apps.size() > position){
+		            TextView appLabel = (TextView)convertView.findViewById(R.id.item_app_label);
+		            appLabel.setText(apps.get(position).label);
+		            appLabel.setCompoundDrawablesWithIntrinsicBounds(null, null, apps.get(position).icon, null);
+	            }
+	             
+	            return convertView;
+	        }
+	    };
+		
 		//-----------------------list setup--------------------//
 		list = (ListView)findViewById(R.id.apps_list);
 	    list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	        @Override
 	        public void onItemClick(AdapterView<?> av, View v, int pos, long id) {
-	        	AppDetail clickedApp = apps.get(pos);
-	        	
-	        	launchApp(clickedApp.name.toString(), clickedApp.activity.toString());
+	        	launchApp(apps.get(pos).name.toString(), apps.get(pos).activity.toString());
 	        }
 	    });
 	    list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -77,6 +94,7 @@ public class MainActivity extends Activity {
 	    		return true;
 	    	}
 		});
+	    list.setAdapter(adapter);
 	}
 	
 	@Override
@@ -103,24 +121,7 @@ public class MainActivity extends Activity {
 			}
 		});
 	    
-	    
-	    //------------------------adapter-------------------------------//
-	    list.setAdapter(new ArrayAdapter<AppDetail>(this, R.layout.list_item, apps) {
-	        @Override
-	        public View getView(int position, View convertView, ViewGroup parent) {
-	            if(convertView == null){
-	                convertView = getListItem();
-	            }
-	            
-	            if(apps.size() > position){
-		            TextView appLabel = (TextView)convertView.findViewById(R.id.item_app_label);
-		            appLabel.setText(apps.get(position).label);
-		            appLabel.setCompoundDrawablesWithIntrinsicBounds(null, null, apps.get(position).icon, null);
-	            }
-	             
-	            return convertView;
-	        }
-	    });
+	    adapter.notifyDataSetChanged();
 	    
 	    //------------------------bookmarks-------------------------------//
 	    SharedPreferences settings = getSharedPreferences("bookmarks", 0);
@@ -195,9 +196,7 @@ public class MainActivity extends Activity {
 		int lastKey = bookmarks.size() - 1;
 		
 		for(int i=lastKey; i>=0; i--) {
-			AppDetail iterApp = bookmarks.get(i);
-			
-			menu.add(Menu.NONE, i, Menu.NONE, iterApp.label);
+			menu.add(Menu.NONE, i, Menu.NONE, bookmarks.get(i).label);
 		}
 		
 		return true;
@@ -223,9 +222,7 @@ public class MainActivity extends Activity {
 		int bookmarkIndex = item.getItemId();
 		
 		if(bookmarkIndex < bookmarks.size()){
-			AppDetail bookmarkedApp = bookmarks.get(bookmarkIndex);
-			
-			launchApp(bookmarkedApp.name.toString(), bookmarkedApp.activity.toString());
+			launchApp(bookmarks.get(bookmarkIndex).name.toString(), bookmarks.get(bookmarkIndex).activity.toString());
 		}
 		
 		return true;
